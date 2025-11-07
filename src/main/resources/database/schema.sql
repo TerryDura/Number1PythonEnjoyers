@@ -1,0 +1,1 @@
+-- Create tables (Patients, doctors, appointments, etc.) here?
