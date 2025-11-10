@@ -1,0 +1,7 @@
+com\medical\medicaldb\controller\PatientController.class
+com\medical\medicaldb\controller\DoctorController.class
+com\medical\medicaldb\repository\DoctorRepository.class
+com\medical\medicaldb\model\Patients.class
+com\medical\medicaldb\MedicaldbApplication.class
+com\medical\medicaldb\repository\PatientRepository.class
+com\medical\medicaldb\model\Doctor.class
