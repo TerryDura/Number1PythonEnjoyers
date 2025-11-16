@@ -28,7 +28,9 @@ public class AddPatientWindow extends JFrame {
         add(new JLabel("Insurance:")); add(insuranceField);
 
         JButton saveBtn = new JButton("Save");
+        JButton backBtn = new JButton("Back");
         add(saveBtn);
+        add(backBtn);
         
 
         saveBtn.addActionListener((ActionEvent e) -> {
@@ -41,6 +43,12 @@ public class AddPatientWindow extends JFrame {
 
             String response = ApiClient.sendRequest("/add", "POST", json);
             JOptionPane.showMessageDialog(this, "Response: " + response);
+        });
+
+        //Back Button Action
+        backBtn.addActionListener(e -> {
+            dispose();
+            new PatientWindow();
         });
 
     

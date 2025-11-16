@@ -54,6 +54,7 @@ public class ViewPatientWindow extends JFrame {
 
     }
 
+    @SuppressWarnings("deprecation")
     private void loadPatients(){
         try{
             URL url = new URL("http://localhost:8080/api/patients/view-all");

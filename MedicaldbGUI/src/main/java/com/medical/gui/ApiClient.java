@@ -9,6 +9,7 @@ public class ApiClient {
 
     private static final String BASE_URL = "http://localhost:8080/api/patients";
 
+    @SuppressWarnings("deprecation")
     public static String sendRequest(String endpoint, String method, String jsonBody){
         try{
             URL url = new URL(BASE_URL + endpoint);

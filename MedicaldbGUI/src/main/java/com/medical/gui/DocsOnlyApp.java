@@ -2,12 +2,14 @@ package com.medical.gui;
 
 
 import java.awt.*;
+import java.io.File;
+import java.security.*;
 import java.util.*;
 import javax.swing.*;
 
 public class DocsOnlyApp {
     public static void main(String[] args) {
-        new LoginWindow(); // Start with the login window
+        SwingUtilities.invokeLater(() -> new LoginWindow());
     }
 }
 
@@ -15,11 +17,13 @@ public class DocsOnlyApp {
 class LoginWindow extends JFrame {
     private JTextField usernameField;
     private JPasswordField passwordField;
-    private JTextField keyField;
+
+    private Map<String, String> users;
+    private String aesKey = "Pieth0n1sB3773r!4d414ngJu575ucks"; 
 
     public LoginWindow() {
-        super("DocsOnly");
-        setSize(500, 500);
+        super("DocsOnly Login");
+        setSize(500, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
@@ -29,8 +33,7 @@ class LoginWindow extends JFrame {
         add(titleLabel, BorderLayout.NORTH);
 
         // Panel for fields
-        JPanel panel = new JPanel();
-        panel.setLayout(new GridBagLayout());
+        JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -59,49 +62,85 @@ class LoginWindow extends JFrame {
         gbc.gridx = 1;
         panel.add(passwordField, gbc);
 
-        // Key
-        JLabel keyLabel = new JLabel("Key:");
-        keyLabel.setFont(new Font("Arial", Font.PLAIN, 20));
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        panel.add(keyLabel, gbc);
-
-        keyField = new JTextField(15);
-        keyField.setFont(new Font("Arial", Font.PLAIN, 20));
-        gbc.gridx = 1;
-        panel.add(keyField, gbc);
-
         // Login button
         JButton loginButton = new JButton("Login");
         loginButton.setFont(new Font("Arial", Font.BOLD, 22));
         gbc.gridx = 0;
-        gbc.gridy = 3;
+        gbc.gridy = 2;
         gbc.gridwidth = 2;
         gbc.anchor = GridBagConstraints.CENTER;
         panel.add(loginButton, gbc);
 
-        // Action for login
         loginButton.addActionListener(e -> checkLogin());
 
         add(panel, BorderLayout.CENTER);
         setLocationRelativeTo(null);
+
+        // Load users securely
+        loadUsers();
+
         setVisible(true);
     }
 
-    private void checkLogin() {
-        String username = usernameField.getText();
-        String password = new String(passwordField.getPassword());
-        String key = keyField.getText();
+    private void loadUsers() {
+        try {
+            File pubFile = new File("public.key");
+            File privFile = new File("private.key");
+            if (!pubFile.exists() || !privFile.exists()) {
+                RSAUtil.generateKeyPair("public.key", "private.key");
+                System.out.println("RSA key pair generated.");
+            }
+            PublicKey pubKey = RSAUtil.loadPublicKey("public.key");
+            PrivateKey privKey = RSAUtil.loadPrivateKey("private.key");
 
-        if (username.equals("User") && password.equals("Pass") && key.equals("12345")) {
+            File usersTxt = new File("users.txt");
+            if (usersTxt.exists()) {
+                // Import users.txt → users.enc
+                users = new HashMap<>();
+                Scanner fileScan = new Scanner(usersTxt);
+                while (fileScan.hasNextLine()) {
+                    String line = fileScan.nextLine();
+                    if (line.trim().isEmpty()) continue;
+                    String[] parts = line.split(",", 2);
+                    if (parts.length == 2) {
+                        String username = parts[0].trim();
+                        String password = parts[1].trim();
+                        String encryptedPass = PassSys2.encryptAES256(aesKey, password);
+                        users.put(username, encryptedPass);
+                    }
+                }
+                fileScan.close();
+
+                PassSys2.saveUserFile(users, pubKey, "users.enc");
+
+
+            } else {
+                // Load users.enc
+                users = PassSys2.loadUserFile("users.enc", privKey);
+            }
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error loading user data: " + e.getMessage(),
+                    "Load Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+            users = new HashMap<>();
+        }
+    }
+
+    private void checkLogin() {
+        String username = usernameField.getText().trim();
+        String password = new String(passwordField.getPassword()).trim();
+
+        boolean authenticated = PassSys2.authenticate(username, password, aesKey, users);
+        if (authenticated) {
             dispose();
             new MenuWindow();
         } else {
-            JOptionPane.showMessageDialog(this, "Wrong username, password, or key", "Login Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Invalid username or password.",
+                    "Login Failed", JOptionPane.ERROR_MESSAGE);
         }
     }
 }
-
 // ================= MENU WINDOW =================
 class MenuWindow extends JFrame {
     public MenuWindow() {
@@ -220,7 +259,20 @@ class AppointmentWindow extends JFrame {
         backButton.addActionListener(e -> { dispose(); new MenuWindow(); });
         add(backButton, BorderLayout.SOUTH);
 
-        btn1.addActionListener(e -> { dispose(); new CreateAppointmentWindow();});
+        btn1.addActionListener(e -> {
+            dispose();
+            new AddAppointmentWindow();
+        });
+
+        btn2.addActionListener(e ->{
+            dispose();
+            new ViewAppointmentsWindow();
+        });
+
+        btn3.addActionListener(e -> {
+            dispose();
+            new ViewAppointmentsWindow();
+        });
 
 
         setLocationRelativeTo(null);
@@ -575,4 +627,6 @@ class CreateAppointmentWindow extends JFrame {
         setLocationRelativeTo(null);
         setVisible(true);
     }
+
+
 }
