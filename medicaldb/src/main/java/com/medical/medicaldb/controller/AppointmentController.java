@@ -3,9 +3,17 @@ package com.medical.medicaldb.controller;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.time.LocalDate;
+import java.time.LocalTime;
+
 
 import com.medical.medicaldb.model.Appointment;
 import com.medical.medicaldb.repository.AppointmentRepository;
+import com.medical.medicaldb.repository.DoctorRepository;
+import com.medical.medicaldb.repository.PatientRepository;
+import com.medical.medicaldb.dto.AppointmentDTO;
+import com.medical.medicaldb.model.Patients;
+import com.medical.medicaldb.model.Doctor;
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -14,9 +22,15 @@ import com.medical.medicaldb.repository.AppointmentRepository;
 public class AppointmentController {
 
     private final AppointmentRepository appointmentRepository;
+    private final DoctorRepository doctorRepository;
+    private final PatientRepository patientRepository;
 
-    public AppointmentController(AppointmentRepository appointmentRepository) {
+    public AppointmentController(AppointmentRepository appointmentRepository,
+    PatientRepository patientRepository,
+    DoctorRepository doctorRepository) {
         this.appointmentRepository = appointmentRepository;
+        this.patientRepository = patientRepository;
+        this.doctorRepository = doctorRepository;
     }
 
     // View all appointments
@@ -38,8 +52,28 @@ public class AppointmentController {
     //Create new appointment
     @SuppressWarnings("null")
     @PostMapping("/add")
-    public Appointment createAppointment(@RequestBody Appointment appointment){
-        return appointmentRepository.save(appointment);
+    public ResponseEntity<Appointment> createAppointment(@RequestBody AppointmentDTO dto){
+        Appointment appt = new Appointment();
+
+        appt.setAppointmentDate(LocalDate.parse(dto.appointmentDate));
+        appt.setStartTime(LocalTime.parse(dto.startTime));
+        appt.setEndTime(LocalTime.parse(dto.endTime));
+        appt.setReason(dto.reason);
+        
+
+        Patients patient = patientRepository.findById(dto.patientId)
+                            .orElseThrow(() -> new RuntimeException("Patient not found"));
+        Doctor doctor = doctorRepository.findById(dto.doctorId)
+                            .orElseThrow(() -> new RuntimeException("Doctor not found."));
+        
+        
+        appt.setPatient(patient);
+        appt.setDoctor(doctor);
+        appt.setStatus("Scheduled");
+
+        Appointment saved = appointmentRepository.save(appt);
+        return ResponseEntity.ok(saved);
+
     }
 
     @SuppressWarnings("null")
