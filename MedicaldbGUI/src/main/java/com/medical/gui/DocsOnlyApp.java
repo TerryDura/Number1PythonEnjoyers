@@ -211,6 +211,10 @@ class PatientWindow extends JFrame {
         }
 
         btn2.addActionListener(e -> { dispose(); new ViewPatientWindow(); });
+        btn3.addActionListener(e -> {
+            dispose();
+            new EditPatientWindow();
+        });
 
         add(buttonPanel, BorderLayout.CENTER);
 

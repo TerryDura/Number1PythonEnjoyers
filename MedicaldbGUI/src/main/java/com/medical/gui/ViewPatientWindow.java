@@ -31,19 +31,30 @@ public class ViewPatientWindow extends JFrame {
         JScrollPane scrollPane = new JScrollPane(table);
         add(scrollPane, BorderLayout.CENTER);
 
+        table.getColumnModel().getColumn(0).setMinWidth(0);
+        table.getColumnModel().getColumn(0).setMaxWidth(0);
+        table.getColumnModel().getColumn(0).setWidth(0);
+
+        table.getColumnModel().getColumn(0).setMinWidth(0);
+        table.getColumnModel().getColumn(0).setMaxWidth(0);
+        table.getColumnModel().getColumn(0).setWidth(0);
+
         //Buttons panel
         JPanel buttonPanel = new JPanel();
         JButton refreshButton = new JButton("Refresh");
         JButton backButton = new JButton("back");
+        JButton editButton = new JButton("Edit Selected");
 
         refreshButton.addActionListener(e -> loadPatients());
         backButton.addActionListener(e -> {
             dispose();
             new PatientWindow(); //return to previous screen
         });
+        editButton.addActionListener(e -> openEditWindow());
 
         buttonPanel.add(refreshButton);
         buttonPanel.add(backButton);
+        buttonPanel.add(editButton);
         add(buttonPanel, BorderLayout.SOUTH);
 
         setLocationRelativeTo(null);
@@ -52,6 +63,20 @@ public class ViewPatientWindow extends JFrame {
         //Load data on startup
         loadPatients();
 
+    }
+
+    private void openEditWindow(){
+        int row = table.getSelectedRow();
+
+        if(row ==-1){
+            JOptionPane.showMessageDialog(this, "Select a patient first.");
+            return;
+        }
+
+        int patientId = (int) tableModel.getValueAt(row, 0);
+
+        dispose();
+        new EditPatientWindow(patientId);
     }
 
     @SuppressWarnings("deprecation")
