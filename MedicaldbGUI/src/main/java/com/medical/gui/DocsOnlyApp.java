@@ -164,7 +164,7 @@ class MenuWindow extends JFrame {
 
         Dimension buttonSize = new Dimension(250, 100);
         Font buttonFont = new Font("Arial", Font.BOLD, 30);
-        JButton[] buttons = {btn1, btn2};
+        JButton[] buttons = {btn1, btn2, btn3};
         for (JButton b : buttons) {
             b.setPreferredSize(buttonSize);
             b.setFont(buttonFont);
@@ -634,20 +634,17 @@ class CreateAppointmentWindow extends JFrame {
         setVisible(true);
     }
 
-    // ================= BILLING WINDOW =================
-static class BillingWindow extends JFrame {
+    static class BillingWindow extends JFrame {
     public BillingWindow() {
         super("Billing");
         setSize(800, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        // Title
         JLabel titleLabel = new JLabel("Billing Summary", SwingConstants.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 45));
         add(titleLabel, BorderLayout.NORTH);
 
-        // Main panel for input and display
         JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
@@ -656,7 +653,6 @@ static class BillingWindow extends JFrame {
         Font labelFont = new Font("Arial", Font.PLAIN, 20);
         Font fieldFont = new Font("Arial", Font.PLAIN, 20);
 
-        // Patient ID input
         JLabel idLabel = new JLabel("Enter Patient ID:");
         idLabel.setFont(labelFont);
         gbc.gridx = 0;
@@ -668,7 +664,6 @@ static class BillingWindow extends JFrame {
         gbc.gridx = 1;
         panel.add(idField, gbc);
 
-        // Calculate button
         JButton calcButton = new JButton("Calculate Total");
         calcButton.setFont(new Font("Arial", Font.BOLD, 25));
         gbc.gridx = 0;
@@ -677,7 +672,6 @@ static class BillingWindow extends JFrame {
         gbc.anchor = GridBagConstraints.CENTER;
         panel.add(calcButton, gbc);
 
-        // Text area for displaying results
         JTextArea resultArea = new JTextArea(10, 40);
         resultArea.setFont(new Font("Arial", Font.PLAIN, 18));
         resultArea.setEditable(false);
@@ -689,7 +683,6 @@ static class BillingWindow extends JFrame {
 
         add(panel, BorderLayout.CENTER);
 
-        // Calculate button logic
         calcButton.addActionListener(e -> {
             String idStr = idField.getText().trim();
             if (idStr.isEmpty()) {
@@ -698,8 +691,8 @@ static class BillingWindow extends JFrame {
             }
             try {
                 int patientId = Integer.parseInt(idStr);
-                String billDetails = com.medical.gui.billing.PaymentProcessor.calculateBill(patientId);  // Call your processor
-                resultArea.setText(billDetails);  // Display formatted totals
+                String billDetails = com.medical.gui.billing.PaymentProcessor.calculateBill(patientId);
+                resultArea.setText(billDetails);
             } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(this, "Invalid Patient ID (must be a number).", "Error", JOptionPane.ERROR_MESSAGE);
             } catch (Exception ex) {
@@ -707,7 +700,6 @@ static class BillingWindow extends JFrame {
             }
         });
 
-        // Back button
         JButton backButton = new JButton("Back to Menu");
         backButton.setFont(new Font("Arial", Font.PLAIN, 22));
         backButton.addActionListener(e -> {
@@ -720,6 +712,4 @@ static class BillingWindow extends JFrame {
         setVisible(true);
     }
 }
-
-
 }
