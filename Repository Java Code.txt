@@ -1,0 +1,50 @@
+package com.clinic.appointment;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Repository
+public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
+
+    // Find all appointments for a specific patient
+    List<Appointment> findByPatientId(Long patientId);
+
+    // Find all appointments for a specific doctor
+    List<Appointment> findByDoctorId(Long doctorId);
+
+    // Find appointments for a doctor in a specific time range
+    List<Appointment> findByDoctorIdAndScheduledTimeBetween(
+            Long doctorId,
+            LocalDateTime start,
+            LocalDateTime end
+    );
+
+    // Find all appointments with a certain status (PENDING, CONFIRMED, etc.)
+    List<Appointment> findByStatus(AppointmentStatus status);
+
+    // Optional: check if a doctor already has an appointment at a given time
+    boolean existsByDoctorIdAndScheduledTime(Long doctorId, LocalDateTime scheduledTime);
+}
+
+
+2nd SECTION of code: 
+
+@RestController
+@RequestMapping("/api/appointments")
+public class AppointmentController {
+
+    private final AppointmentRepository appointmentRepository;
+
+    public AppointmentController(AppointmentRepository appointmentRepository) {
+        this.appointmentRepository = appointmentRepository;
+    }
+
+    // example endpoint
+    @GetMapping("/patient/{patientId}")
+    public List<Appointment> getAppointmentsForPatient(@PathVariable Long patientId) {
+        return appointmentRepository.findByPatientId(patientId);
+    }
+}

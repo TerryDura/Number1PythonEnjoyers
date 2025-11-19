@@ -1,0 +1,185 @@
+package com.clinic.appointment;
+
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "appointments")
+public class Appointment {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id") // or "appointment_id" if that's your table name
+    private Long id;
+
+    @Column(name = "patient_id", nullable = false)
+    private Long patientId;
+
+    @Column(name = "doctor_id", nullable = false)
+    private Long doctorId;
+
+    @Column(name = "scheduled_time", nullable = false)
+    private LocalDateTime scheduledTime;
+
+    @Column(name = "duration_minutes", nullable = false)
+    private Integer durationMinutes;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
+    private AppointmentStatus status;
+
+    @Column(name = "reason", length = 255)
+    private String reason;
+
+    @Column(name = "notes", length = 500)
+    private String notes;
+
+    @Column(name = "room_number", length = 20)
+    private String roomNumber;
+
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    // ---------------------------------------------------
+    // Constructors
+    // ---------------------------------------------------
+
+    public Appointment() {
+        // JPA requires a no-arg constructor
+    }
+
+    public Appointment(
+            Long patientId,
+            Long doctorId,
+            LocalDateTime scheduledTime,
+            Integer durationMinutes,
+            AppointmentStatus status,
+            String reason,
+            String notes,
+            String roomNumber
+    ) {
+        this.patientId = patientId;
+        this.doctorId = doctorId;
+        this.scheduledTime = scheduledTime;
+        this.durationMinutes = durationMinutes;
+        this.status = status;
+        this.reason = reason;
+        this.notes = notes;
+        this.roomNumber = roomNumber;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    // ---------------------------------------------------
+    // Getters and Setters
+    // ---------------------------------------------------
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Long getPatientId() {
+        return patientId;
+    }
+
+    public void setPatientId(Long patientId) {
+        this.patientId = patientId;
+    }
+
+    public Long getDoctorId() {
+        return doctorId;
+    }
+
+    public void setDoctorId(Long doctorId) {
+        this.doctorId = doctorId;
+    }
+
+    public LocalDateTime getScheduledTime() {
+        return scheduledTime;
+    }
+
+    public void setScheduledTime(LocalDateTime scheduledTime) {
+        this.scheduledTime = scheduledTime;
+    }
+
+    public Integer getDurationMinutes() {
+        return durationMinutes;
+    }
+
+    public void setDurationMinutes(Integer durationMinutes) {
+        this.durationMinutes = durationMinutes;
+    }
+
+    public AppointmentStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(AppointmentStatus status) {
+        this.status = status;
+    }
+
+    public String getReason() {
+        return reason;
+    }
+
+    public void setReason(String reason) {
+        this.reason = reason;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
+
+    public String getRoomNumber() {
+        return roomNumber;
+    }
+
+    public void setRoomNumber(String roomNumber) {
+        this.roomNumber = roomNumber;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    // Convenience method to keep updatedAt in sync
+    @PreUpdate
+    public void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
+}
+
+AppointmentStatus Section : 
+
+package com.clinic.appointment;
+
+public enum AppointmentStatus {
+    PENDING,
+    CONFIRMED,
+    COMPLETED,
+    CANCELLED,
+    NO_SHOW
+}
