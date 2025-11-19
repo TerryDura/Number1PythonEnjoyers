@@ -1,0 +1,153 @@
+package com.clinic.appointment;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.net.URI;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+@RestController
+@RequestMapping("/api/appointments")
+@CrossOrigin(origins = "*") // allow calls from your frontend (React, Angular, etc.)
+public class AppointmentController {
+
+    private final AppointmentRepository appointmentRepository;
+
+    public AppointmentController(AppointmentRepository appointmentRepository) {
+        this.appointmentRepository = appointmentRepository;
+    }
+
+    // ----------------------------------------------------
+    // BASIC NAVIGATION ENDPOINTS (HOOKED TO MENU ITEMS)
+    // ----------------------------------------------------
+
+    // 1. "All Appointments" menu item -> GET /api/appointments
+    @GetMapping
+    public List<Appointment> getAllAppointments() {
+        return appointmentRepository.findAll();
+    }
+
+    // 2. "Appointment Details" -> GET /api/appointments/{id}
+    @GetMapping("/{id}")
+    public ResponseEntity<Appointment> getAppointmentById(@PathVariable Long id) {
+        Optional<Appointment> appointment = appointmentRepository.findById(id);
+        return appointment
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    // 3. "Patient Appointments" -> GET /api/appointments/patient/{patientId}
+    @GetMapping("/patient/{patientId}")
+    public List<Appointment> getAppointmentsByPatient(@PathVariable Long patientId) {
+        return appointmentRepository.findByPatientId(patientId);
+    }
+
+    // 4. "Doctor Schedule" -> GET /api/appointments/doctor/{doctorId}
+    @GetMapping("/doctor/{doctorId}")
+    public List<Appointment> getAppointmentsByDoctor(@PathVariable Long doctorId) {
+        return appointmentRepository.findByDoctorId(doctorId);
+    }
+
+    // 5. "Doctor Schedule (by day)" -> GET /api/appointments/doctor/{doctorId}/day?start=2025-11-18T00:00&end=2025-11-18T23:59
+    @GetMapping("/doctor/{doctorId}/day")
+    public List<Appointment> getDoctorAppointmentsForDay(
+            @PathVariable Long doctorId,
+            @RequestParam("start") String start,
+            @RequestParam("end") String end
+    ) {
+        LocalDateTime startTime = LocalDateTime.parse(start);
+        LocalDateTime endTime = LocalDateTime.parse(end);
+        return appointmentRepository.findByDoctorIdAndScheduledTimeBetween(
+                doctorId, startTime, endTime
+        );
+    }
+
+    // 6. "Filter by Status" (e.g. PENDING, CONFIRMED) -> GET /api/appointments/status/{status}
+    @GetMapping("/status/{status}")
+    public List<Appointment> getAppointmentsByStatus(@PathVariable AppointmentStatus status) {
+        return appointmentRepository.findByStatus(status);
+    }
+
+    // ----------------------------------------------------
+    // CREATE / UPDATE / DELETE (USED BY MENU ACTIONS)
+    // ----------------------------------------------------
+
+    // "New Appointment" form -> POST /api/appointments
+    @PostMapping
+    public ResponseEntity<Appointment> createAppointment(@RequestBody Appointment appointment) {
+        // Ensure timestamps are set
+        appointment.setCreatedAt(LocalDateTime.now());
+        appointment.setUpdatedAt(LocalDateTime.now());
+
+        Appointment saved = appointmentRepository.save(appointment);
+
+        return ResponseEntity
+                .created(URI.create("/api/appointments/" + saved.getId()))
+                .body(saved);
+    }
+
+    // "Edit Appointment" -> PUT /api/appointments/{id}
+    @PutMapping("/{id}")
+    public ResponseEntity<Appointment> updateAppointment(
+            @PathVariable Long id,
+            @RequestBody Appointment updatedData
+    ) {
+        Optional<Appointment> existingOpt = appointmentRepository.findById(id);
+
+        if (existingOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Appointment existing = existingOpt.get();
+
+        // Update fields from the incoming data
+        existing.setPatientId(updatedData.getPatientId());
+        existing.setDoctorId(updatedData.getDoctorId());
+        existing.setScheduledTime(updatedData.getScheduledTime());
+        existing.setDurationMinutes(updatedData.getDurationMinutes());
+        existing.setStatus(updatedData.getStatus());
+        existing.setReason(updatedData.getReason());
+        existing.setNotes(updatedData.getNotes());
+        existing.setRoomNumber(updatedData.getRoomNumber());
+        existing.setUpdatedAt(LocalDateTime.now());
+
+        Appointment saved = appointmentRepository.save(existing);
+        return ResponseEntity.ok(saved);
+    }
+
+    // "Cancel/Delete Appointment" -> DELETE /api/appointments/{id}
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteAppointment(@PathVariable Long id) {
+        if (!appointmentRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        appointmentRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    // Optional: quick status change (e.g., menu action "Mark as Completed")
+    @PatchMapping("/{id}/status/{status}")
+    public ResponseEntity<Appointment> updateStatus(
+            @PathVariable Long id,
+            @PathVariable AppointmentStatus status
+    ) {
+        Optional<Appointment> existingOpt = appointmentRepository.findById(id);
+
+        if (existingOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Appointment appointment = existingOpt.get();
+        appointment.setStatus(status);
+        appointment.setUpdatedAt(LocalDateTime.now());
+
+        Appointment saved = appointmentRepository.save(appointment);
+        return ResponseEntity.ok(saved);
+    }
+}
+
+
